@@ -11,14 +11,14 @@ To that end to run a backtest simply specify some required options, enter some t
  - Trading leverage supported: leveraged positions can be easily run and specified in the options object, the default is to have no leverage.
  - Spread and fees taken into account: a constant can specify the extent of bid/ask spread and any broker fees to make the system more realistic.
  - Easily modifyable: you can effectively include any trading logic in this system, all it needs to do is return a trading signal if it want's to open or close a trade on any given time period
+ - Streams data from file as it goes along, meaning that all of the file's data isn't loaded into memory at once, meaning that very large files of millions of lines of data can be processed without running out of RAM or slowing down the system.
 
 ## Usage & Examples
 Simply download the entire Github repo including Node modules and run `node example.js` - feel free to play around and modify this file to your needs - it provides a good base point to start from.
 
 You'll see that the first and most important thing written in the file is the options object - this specifies how the backtester should run and read data:
 
-`
-//Setup the backtester options before it runs
+`//Setup the backtester options before it runs
 const backtesterOptions = {
     //Instrument name you're trading, needs to be quoted in 'NAME/CURRENCY' form, i.e. if
     //it's Tesla stock being traded in dollars you'd do 'TSLA/USD', if it's the pound against
@@ -56,8 +56,7 @@ const backtesterOptions = {
     },
     leverage: 1,
     spreadAndFees: 0.2//% (0.1 for spread, 0.1 for fees)
-}
-`
+}`
 
 As can be seen in here the data file for the backtest is specified along with how it should be parsed, other options such as leverage, spread, fees and optional downsampling are also present.
 
@@ -111,12 +110,10 @@ backtester.tradeShouldOpen = function(priceData, currentlyOpenTrades, backtester
 
     //If no trades have been opened then default to return null
     return null;
-}
-`
+}`
 
 The same principle applies for the `tradeShouldClose()` function:
-`
-//Required - Called once per iteration over all price data, you put your custom trading logic in here
+`//Required - Called once per iteration over all price data, you put your custom trading logic in here
 backtester.tradeShouldClose = function(priceData, currentlyOpenTrades, backtesterReference) {
     //Get all open trades, and other required metadata from the backtester object
     let allOpenTrades = backtesterReference.getOpenTrades();
@@ -135,8 +132,7 @@ backtester.tradeShouldClose = function(priceData, currentlyOpenTrades, backteste
 
     //Defaults to 
     return null;
-}
-`
+}`
 
 Things like stop losses etc. can be implemented manually in the `tradeShouldClose()` function for the moment.
 
