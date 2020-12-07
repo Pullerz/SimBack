@@ -1,6 +1,6 @@
 
 ## Simple Backtester
-This project requires NodeJS, the JavaScript command line engine which can be downloaded [here](https://nodejs.org/en/download/)
+This project requires NodeJS, the JavaScript command line engine which can be downloaded [here](https://nodejs.org/en/download/).
 
 The basic idea of this project was to build a general-purpose strategy backtester which would work on near-enough all types of data with little to no modification. All complex operations should be done behind the scenes making the focus of the system the strategy and not what's executing it.
 
@@ -17,7 +17,7 @@ To that end to run a backtest simply specify some required options, enter some t
  - Streams data from file as it goes along, meaning that all of the file's data isn't loaded into memory at once, meaning that very large files of millions of lines of data can be processed without running out of RAM or slowing down the system.
 
 ## Usage & Examples
-Simply download the entire Github repo including Node modules and run `node example.js` - feel free to play around and modify this file to your needs - it provides a good base point to start from.
+Simply download the Github repo [here](https://github.com/Pullerz/SimBack/archive/master.zip), `cd` into the downloaded directory and run `node example.js` - feel free to play around and modify this file to your needs - it provides a good base point to start from.
 
 You'll see that the first and most important thing written in the file is the options object - this specifies how the backtester should run and read data:
 
