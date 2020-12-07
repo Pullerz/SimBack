@@ -113,6 +113,7 @@ backtester.tradeShouldOpen = function(priceData, currentlyOpenTrades, backtester
 }`
 
 The same principle applies for the `tradeShouldClose()` function:
+
 `//Required - Called once per iteration over all price data, you put your custom trading logic in here
 backtester.tradeShouldClose = function(priceData, currentlyOpenTrades, backtesterReference) {
     //Get all open trades, and other required metadata from the backtester object
