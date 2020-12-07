@@ -17,13 +17,26 @@ class DataSource {
         let ratio = 1;
 
         if ('downsampleResolution' in options) {
-            ratio = options.downsampleResolution / options.resolution
+            if (options.downsampleResolution > options.resolution) {
+                ratio = options.downsampleResolution / options.resolution
+            } else {
+                DEBUG.error(`Fatal error: Please enter a downsample resolution longer than the actual resolution of the data`);
+            }
+            
         }
+
+        //Downsampled variables
+        let dsO = Infinity;
+        let dsH = -Infinity;
+        let dsL = Infinity;
+        let dsC = Infinity;
 
         this.reader.on('data', function (chunk) {
             self.reader.pause();
             let split = chunk.toString().split(options.newLineDelimeter || "\n");
-            for (let i = 0; i < split.length; i++) {
+            let startingIndex = (options.ignoreFirstLine == true) ? 1 : 0;
+
+            for (let i = startingIndex; i < split.length; i++) {
                 if (options.dataType === BacktesterDataType.BA) {
                     let data = split[i].split(options.delimeter);
                     if (options.expectedLineLength === 13) {
@@ -45,21 +58,60 @@ class DataSource {
                     }
 
                     let data = split[i].split(options.delimeter);
-                    let o = Number(data[options.indexes.open]);//1
-                    let h = Number(data[options.indexes.high]);//2
-                    let l = Number(data[options.indexes.low]);//3
-                    let c = Number(data[options.indexes.close]);//4
-    
-                    if (!isNaN(o) && !isNaN(h) && !isNaN(l) && !isNaN(c) && self.count % ratio == 0) {
-                        onNewData({
-                            open: o,
-                            high: h,
-                            low: l,
-                            close: c,
-                            count: self.count
-                        });   
-                        self.count += 1;    
+                    let o = Number(data[options.indexes.open]);
+                    let h = Number(data[options.indexes.high]);
+                    let l = Number(data[options.indexes.low]);
+                    let c = Number(data[options.indexes.close]);
+
+                    if ('downsampleResolution' in options) {
+                        if (self.count % ratio == 0) {
+                            dsO = o;
+                        } else {
+                            if (h > dsH) {
+                                dsH = h;
+                            }
+                            if (l < dsL) {
+                                dsL = l;
+                            }
+                            if (self.count % ratio == ratio - 1) {
+                                dsC = c;
+                            }
+                        }
+
+                        if (dsO != Infinity && dsH != -Infinity && dsL != Infinity && dsC != Infinity) {
+                            if (!isNaN(dsO) && !isNaN(dsH) && !isNaN(dsL) && !isNaN(dsC) && self.count % ratio == ratio - 1) {
+                                onNewData({
+                                    open: dsO,
+                                    high: dsH,
+                                    low: dsL,
+                                    close: dsC,
+                                    count: (self.count + 1) / ratio
+                                });    
+                            }
+
+                            dsO = Infinity;
+                            dsH = -Infinity;
+                            dsL = Infinity;
+                            dsC = Infinity;
+
+                        }
+
+                        self.count += 1;   
+
+                    } else {
+                        if (!isNaN(o) && !isNaN(h) && !isNaN(l) && !isNaN(c) && self.count % ratio == 0) {
+                            onNewData({
+                                open: o,
+                                high: h,
+                                low: l,
+                                close: c,
+                                count: self.count
+                            });   
+                            self.count += 1;    
+                        }
                     }
+
+                    
                 }
                             
             };

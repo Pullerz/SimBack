@@ -7,7 +7,7 @@ const DEBUG = require('./debug.js');
 const Utils = require('./utils.js');
 const Trade = require('./trade.js');
 
-// DEBUG.showWarnings = false;
+DEBUG.showWarnings = false;
 
 //Setup the backtester options before it runs
 const backtesterOptions = {
@@ -40,11 +40,14 @@ const backtesterOptions = {
             low:   3,
             close: 4
         },
+        //Ignores the first line of the data file, often because that line is used for headers for columns and not data
+        ignoreFirstLine: true,
         //The resolution of the inputted data file as a DataSourceTimeframe object (1 minute, 5 minute, 10 minute etc...)
         resolution: DataSourceTimeframe.M_1, 
         //Optional - a lower resolution that the incoming data will be downsampled to (e.g. from M_1 to M_5 will DS from 1m bars to 5m bars)
         // downsampleResolution: DataSourceTimeframe.M_5
     },
+    //Not yet implemented
     leverage: 1,
     spreadAndFees: 0.2//% (0.1 for spread, 0.1 for fees)
 }
