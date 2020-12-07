@@ -1,5 +1,7 @@
 
 ## Simple Backtester
+This project requires NodeJS, the JavaScript command line engine which can be downloaded [here](https://nodejs.org/en/download/)
+
 The basic idea of this project was to build a general-purpose strategy backtester which would work on near-enough all types of data with little to no modification. All complex operations should be done behind the scenes making the focus of the system the strategy and not what's executing it.
 
 To that end to run a backtest simply specify some required options, enter some trading logic for both trade entry and trade exit and the system does the rest for you.
