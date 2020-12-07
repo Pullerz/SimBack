@@ -109,7 +109,7 @@ The main idea is that you put your trading code inside of these two functions an
 	        if (priceData.close > averagePrice && lastClose < averagePrice && backtesterReference.numberOfOpenTrades() == 0) {
 	           //If the price has crossed above the average line in the past two periods then open a long trade
 	            return new TradeOpenSignal(BacktesterTradeDirection.LONG, 100);
-	        } else if (priceData.close < averageClose && lastClose > averagePrice && backtesterReference.numberOfOpenTrades() == 0) {
+	        } else if (priceData.close < averagePrice && lastClose > averagePrice && backtesterReference.numberOfOpenTrades() == 0) {
 	            //If the price has crossed below the average line in the past two periods then open a short trade
 	            return new TradeOpenSignal(BacktesterTradeDirection.SHORT, 100);
 	        }
