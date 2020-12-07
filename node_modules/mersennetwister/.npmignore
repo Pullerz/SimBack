@@ -1,0 +1,6 @@
+.idea
+.grunt
+_SpecRunner.html
+npm-debug.log
+doc/
+node_modules/
