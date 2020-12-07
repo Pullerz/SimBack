@@ -107,10 +107,12 @@ The main idea is that you put your trading code inside of these two functions an
 	        var averagePrice = ((recentHigh + recentLow) / 2);
 	        
 	        if (priceData.close > averagePrice && lastClose < averagePrice && backtesterReference.numberOfOpenTrades() == 0) {
-	           //If the price has crossed above the average line in the past two periods then open a long trade
+	            //If the price has crossed above the average line in the past two periods then open a long trade
+		    DEBUG.log(`Opened a long trade at ${priceData.close}`);
 	            return new TradeOpenSignal(BacktesterTradeDirection.LONG, 100);
 	        } else if (priceData.close < averagePrice && lastClose > averagePrice && backtesterReference.numberOfOpenTrades() == 0) {
 	            //If the price has crossed below the average line in the past two periods then open a short trade
+		    DEBUG.log(`Opened a short trade at ${priceData.close}`);
 	            return new TradeOpenSignal(BacktesterTradeDirection.SHORT, 100);
 	        }
 
@@ -136,15 +138,22 @@ The same principle applies for the `tradeShouldClose()` function:
 	    let allOpenTrades = backtesterReference.getOpenTrades();
 	    let currentDataType = backtesterReference.options.sourceOptions.dataType;
 	    let spreadAndFees = backtesterReference.options.spreadAndFees;
+	    
 	    //Loop over all trades, if any of them are losing more than 700 then close that trade
 	    let tradesToClose = [];
 	    for (let openTrade of allOpenTrades) {
-	        if (openTrade.getResult(priceData, currentDataType, spreadAndFees) <= -700) {
-	            tradesToClose.push(openTrade.id);
-	        }
+		let tradeResult = openTrade.getResult(priceData, currentDataType, spreadAndFees);
+
+		if (tradeResult >= 200) {
+		    DEBUG.log(`Closing trade with profit of ${openTrade.getResult(priceData, currentDataType, spreadAndFees)}`);
+		    tradesToClose.push(openTrade.id);
+		} else if (tradeResult <= -100) {
+		    DEBUG.log(`Closing trade with loss of ${openTrade.getResult(priceData, currentDataType, spreadAndFees)}`);
+		    tradesToClose.push(openTrade.id);
+		}
 	    }
 	    if (tradesToClose.length > 0) {
-	        return new TradeCloseSignal(tradesToClose);
+		return new TradeCloseSignal(tradesToClose);
 	    }
 
 	    //Defaults to 
@@ -154,6 +163,11 @@ The same principle applies for the `tradeShouldClose()` function:
 Things like stop losses etc. can be implemented manually in the `tradeShouldClose()` function for the moment.
 
 When complete the `onCompletion()` method is called which gives you the state of the balances for the system at the end of the data as well as other useful metrics of the strategy's performance such as totalWinningTrades, totalLosingTrades, tradeRatio, maximumDrawdown, averageTradeLength etc.
+
+	backtester.onCompletion = function(balances) {
+    		DEBUG.log("Final results", balances);
+	}
+
 
 **Future To-Do's**
 
