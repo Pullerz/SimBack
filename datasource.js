@@ -1,6 +1,5 @@
-const { throws } = require('assert');
 const fs = require('fs');
-const {BacktesterDataType, BacktesterTradeDirection} = require('./enums.js');
+const {BacktesterDataType, BacktesterTradeDirection, TechnicalIndicator, TechnicalIndicatorType} = require('./enums.js');
 const DEBUG = require('./debug.js');
 
 
@@ -15,6 +14,7 @@ class DataSource {
         let self = this;
 
         let ratio = 1;
+        let indicators = {};
 
         if ('downsampleResolution' in options) {
             if (options.downsampleResolution > options.resolution) {
@@ -23,6 +23,14 @@ class DataSource {
                 DEBUG.error(`Fatal error: Please enter a downsample resolution longer than the actual resolution of the data`);
             }
             
+        }
+
+        //Initialise indicators if they're in the options
+        if ('indicators' in options) {
+            let indicatorsList = options.indicators;
+            for (let indicator of indicatorsList) {
+                indicators[indicator.name] = null;
+            }
         }
 
         //Downsampled variables
@@ -43,12 +51,30 @@ class DataSource {
                         let bid = Number(data[options.indexes.bid]);
                         let ask = Number(data[options.indexes.ask]);
         
+                        if ('indicators' in options) {
+                            let indicatorsList = options.indicators;
+                            for (let indicator of indicatorsList) {
+                                if (indicator.type == TechnicalIndicatorType.MovingAverage) {
+                                    if (indicators[indicator.name] == null) {
+                                        indicators[indicator.name] = ((ask + bid) / 2);
+                                    } else {
+                                        let multiplier = 2 / (indicator.periods + 1);
+                                        indicators[indicator.name] = (((ask + bid) / 2) * multiplier) + (indicators[indicator.name] * (1 - multiplier));
+                                    }
+                                }
+                            }
+                        }
+
                         if (!isNaN(bid) && !isNaN(ask) && self.count % ratio == 0) {
-                            onNewData({
+                            let newData = {
                                 bid: bid,
                                 ask: ask,
                                 count: self.count
-                            });   
+                            };
+                            if (Object.keys(indicators).length > 0) {
+                                newData["indicators"] = JSON.parse(JSON.stringify(indicators));
+                            }
+                            onNewData(newData);   
                             self.count += 1;    
                         }
                     }     
@@ -62,6 +88,7 @@ class DataSource {
                     let h = Number(data[options.indexes.high]);
                     let l = Number(data[options.indexes.low]);
                     let c = Number(data[options.indexes.close]);
+
 
                     if ('downsampleResolution' in options) {
                         if (self.count % ratio == 0) {
@@ -78,15 +105,33 @@ class DataSource {
                             }
                         }
 
+                        if ('indicators' in options) {
+                            let indicatorsList = options.indicators;
+                            for (let indicator of indicatorsList) {
+                                if (indicator.type == TechnicalIndicatorType.MovingAverage) {
+                                    if (indicators[indicator.name] == null) {
+                                        indicators[indicator.name] = dsC;
+                                    } else {
+                                        let multiplier = 2 / (indicator.periods + 1);
+                                        indicators[indicator.name] = (dsC * multiplier) + (indicators[indicator.name] * (1 - multiplier));
+                                    }
+                                }
+                            }
+                        }
+
                         if (dsO != Infinity && dsH != -Infinity && dsL != Infinity && dsC != Infinity) {
                             if (!isNaN(dsO) && !isNaN(dsH) && !isNaN(dsL) && !isNaN(dsC) && self.count % ratio == ratio - 1) {
-                                onNewData({
+                                let newData = {
                                     open: dsO,
                                     high: dsH,
                                     low: dsL,
                                     close: dsC,
                                     count: (self.count + 1) / ratio
-                                });    
+                                };
+                                if (Object.keys(indicators).length > 0) {
+                                    newData["indicators"] = JSON.parse(JSON.stringify(indicators));
+                                }
+                                onNewData(newData);    
                             }
 
                             dsO = Infinity;
@@ -100,13 +145,33 @@ class DataSource {
 
                     } else {
                         if (!isNaN(o) && !isNaN(h) && !isNaN(l) && !isNaN(c) && self.count % ratio == 0) {
-                            onNewData({
+                            if ('indicators' in options) {
+                                let indicatorsList = options.indicators;
+                                for (let indicator of indicatorsList) {
+                                    if (indicator.type == TechnicalIndicatorType.MovingAverage) {
+                                        if (indicators[indicator.name] == null) {
+                                            indicators[indicator.name] = c;
+                                        } else {
+                                            let multiplier = 2 / (indicator.periods + 1);
+                                            indicators[indicator.name] = (c * multiplier) + (indicators[indicator.name] * (1 - multiplier));
+                                        }
+                                    }
+                                }
+                            }
+
+                            let newData = {
                                 open: o,
                                 high: h,
                                 low: l,
                                 close: c,
                                 count: self.count
-                            });   
+                            };
+
+                            if (Object.keys(indicators).length > 0) {
+                                newData["indicators"] = JSON.parse(JSON.stringify(indicators));
+                            }
+
+                            onNewData(newData);   
                             self.count += 1;    
                         }
                     }
@@ -120,6 +185,10 @@ class DataSource {
         this.reader.on('end', function() {
             end();
         })
+    }
+
+    stop() {
+        this.reader.pause();
     }
 
 }

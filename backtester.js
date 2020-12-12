@@ -1,9 +1,10 @@
 const DataSource = require('./datasource.js').DataSource;
 const DataSourceTimeframe = require('./datasource.js').DataSourceTimeframe;
-const {BacktesterDataType, BacktesterTradeDirection} = require('./enums.js');
 const DEBUG = require('./debug.js');
 const Utils = require('./utils.js');
 const Trade = require('./trade.js');
+const {BacktesterDataType, BacktesterTradeDirection} = require('./enums.js');
+
 
 class Backtester {
     constructor(options) {
